@@ -1,0 +1,9 @@
+<html>
+    <form method="POST" action="">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="btn-wrap">
+            <button type="submit" class="btn btn-primary btn-lg btn-full-width">Subscribe</button>
+        </div>
+    </form>
+</html>
