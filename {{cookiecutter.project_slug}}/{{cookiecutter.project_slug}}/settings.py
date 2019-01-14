@@ -11,22 +11,26 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'zkctlm=js_0xwcv%0r+g^0b$pq4ge&k9r1wznidzgmknhxtaat'
+SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+SITE_ID = 1
 
 # Application definition
 
@@ -39,6 +43,19 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites'
 ]
+LOCAL_APPS = [
+    'home',
+]
+THIRD_PARTY_APPS = [
+    'rest_framework',
+    'rest_framework.authtoken',
+    'bootstrap4',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+]
+INSTALLED_APPS += LOCAL_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -48,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = '{{cookiecutter.project_slug}}.urls'
@@ -76,11 +94,19 @@ WSGI_APPLICATION = '{{cookiecutter.project_slug}}.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+       'ENGINE': 'django.db.backends.postgresql_psycopg2',
+       'NAME': '{{cookiecutter.project_slug}}',
+       'USER': '{{cookiecutter.project_slug}}',
+       'PASSWORD': '{{cookiecutter.project_slug}}',
+       'HOST': 'localhost',
+       'PORT': '5432',
     }
 }
 
+if env.str('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': env.db()
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -120,43 +146,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-import environ
-env = environ.Env()
-ALLOWED_HOSTS = ['*']
-SITE_ID = 1
-MIDDLEWARE += ['whitenoise.middleware.WhiteNoiseMiddleware']
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=True)
-
-if env.str("DATABASE_URL", default=None):
-    DATABASES = {
-        'default': env.db()
-    }
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
 )
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-LOCAL_APPS = [
-    'home',
-]
-THIRD_PARTY_APPS = [
-    'rest_framework',
-    'rest_framework.authtoken',
-    'bootstrap4',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-]
-INSTALLED_APPS += LOCAL_APPS + THIRD_PARTY_APPS
 
 # allauth
 ACCOUNT_EMAIL_REQUIRED = True
@@ -167,10 +166,19 @@ LOGIN_REDIRECT_URL = '/'
 
 if DEBUG:
     # output email to console instead of sending
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-EMAIL_HOST = "smtp.sendgrid.net"
-EMAIL_HOST_USER = env.str("SENDGRID_USERNAME", "")
-EMAIL_HOST_PASSWORD = env.str("SENDGRID_PASSWORD", "")
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = env.str('SENDGRID_USERNAME', '')
+EMAIL_HOST_PASSWORD = env.str('SENDGRID_PASSWORD', '')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+
+# Import local settings
+try:
+    from .local_settings import *
+
+    INSTALLED_APPS += DEBUG_APPS
+except:
+    pass

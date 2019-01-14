@@ -1,4 +1,4 @@
-
+{% raw %}
 {% load staticfiles %}
 <!doctype html>
 <html lang="en">
@@ -12,8 +12,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
         <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/medium-editor@latest/dist/css/medium-editor.min.css" type="text/css" media="screen" charset="utf-8">
         <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/medium-editor@latest/dist/css/themes/tim.css" type="text/css" media="screen" charset="utf-8">
-
-      <link rel="stylesheet" href={% static 'css/main.css' %} >
+        <link rel="stylesheet" href={% static 'css/main.css' %} >
     <title>{{ customtext.title|striptags }}</title>
   </head>
   <body>
@@ -102,7 +101,8 @@
           "fadeOut": 800,
           "timeOut": 2000,
           "extendedTimeOut": 1000
-        }
+        };
     </script>
-  </body>
+    </body>
 </html>
+{% endraw %}
